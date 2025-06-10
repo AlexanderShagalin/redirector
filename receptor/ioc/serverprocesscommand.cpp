@@ -64,8 +64,13 @@ boost::beast::http::response<http::string_body> ServerProcessCommand::handle_req
     res.result(http::status::ok);
     res.set(http::field::content_type, "text/html");
 
-    if(req.target() == "/")
+    if(req.target() == "/register"/* && req.method() == http::verb::post*/)
     {
+        // std::string username = req[http::field::authorization];
+        // res.set(http::field::authentication_results, username);
+
+        IoC::Resolve<ICommandPtr>("RegisterUserCommand", std::string("simple user"))->execute();
+
         res.body() = "<html><head><title>Receptor</title><meta charset=\"utf8\"/></head>"
                      "<body><h1>Добро пожаловать!</h1>"
                      "</body></html>";
@@ -105,6 +110,21 @@ boost::beast::http::response<http::string_body> ServerProcessCommand::handle_req
         else
         {
             json::error_code ec;
+
+            auto authdata = IoC::Resolve<std::pair<std::string,std::string>>("Server.Auth.Get");
+
+            try
+            {
+            IoC::Resolve<ICommandPtr>("CheckUserCommand", authdata.first, authdata.second)->execute();
+            }
+            catch(std::exception &)
+            {
+                res.result(http::status::unauthorized );
+                res.prepare_payload();
+                res.keep_alive(req.keep_alive());
+                return res;
+            }
+
             auto recieved = json::parse(result, ec);
             // std::cout << recieved << std::endl;
             if(ec.value() == 0)

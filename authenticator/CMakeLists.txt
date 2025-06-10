@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(receptor LANGUAGES CXX)
+project(authenticator LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 
 include_directories(interfaces)
 include_directories(ioc)
+include_directories(endpoint)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
@@ -24,16 +25,19 @@ if(ENABLE_TESTING)
     endif()
 endif()
 
-add_executable(receptor main.cpp
+add_executable(authenticator main.cpp
     interfaces/icommand.h
     interfaces/iresolvercontainer.h
     interfaces/icommandqueue.h
     interfaces/ihandler.h
-
+    interfaces/iendpoint.h
+    interfaces/irule.h
+    interfaces/iruleloader.h
+    interfaces/irulebuilder.h
+    interfaces/irulesequenceloader.h
     ioc/iresolvercollection.h
     ioc/iscope.h
     ioc/iscopechanger.h
-    ioc/commandexception.h
     ioc/ioc.cpp ioc/ioc.h
     ioc/scope.cpp ioc/scope.h
     ioc/exceptionmanager.cpp ioc/exceptionmanager.h
@@ -47,29 +51,35 @@ add_executable(receptor main.cpp
     ioc/scopechangeradapter.cpp ioc/scopechangeradapter.h
     ioc/commandqueue.cpp ioc/commandqueue.h
     ioc/macrocommand.cpp ioc/macrocommand.h
-    ioc/serverprocesscommand.h ioc/serverprocesscommand.cpp
-    ioc/registerusercommand.h ioc/registerusercommand.cpp
-    interfaces/iredirector.h
-    httpredirector.h httpredirector.cpp
-    ioc/checkusercommand.h ioc/checkusercommand.cpp
+
+
+
+    ioc/ruleredirect.h ioc/ruleredirect.cpp
+    ioc/sendnorulecommand.h ioc/sendnorulecommand.cpp
+    ioc/authprocesscommand.h ioc/authprocesscommand.cpp
+
+
+    endpoint/endpoint.h endpoint/endpoint.cpp
+    endpoint/jsonendpoint.h endpoint/jsonendpoint.cpp
+
+
+    ruleloader.h ruleloader.cpp
+
 )
 
 find_package(Boost COMPONENTS program_options json REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(receptor PRIVATE ${Boost_LIBRARIES})
+
+find_package(OpenSSL REQUIRED)
+
+find_package(jwt-cpp REQUIRED)
+
+target_link_libraries(authenticator PRIVATE ${Boost_LIBRARIES} ${OpenSSL_LIBRARIES} jwt-cpp::jwt-cpp)
 
 include(GNUInstallDirs)
-install(TARGETS receptor
+install(TARGETS authenticator
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-add_custom_command(
-    TARGET receptor
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:receptor> ${CMAKE_BINARY_DIR}/bin
 )
 
 if(ENABLE_COVERAGE)
@@ -80,7 +90,7 @@ if(ENABLE_COVERAGE)
     add_custom_target(coverage
         COMMAND ${LCOV_PATH} --directory . --zerocounters
 
-        COMMAND $<TARGET_FILE:receptor>
+        COMMAND $<TARGET_FILE:authenticator>
 
         COMMAND ${LCOV_PATH} --directory . --capture --output-file coverage.info
 
@@ -96,6 +106,16 @@ if(ENABLE_COVERAGE)
     )
 
 endif()
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+add_custom_command(
+    TARGET authenticator
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:authenticator> ${CMAKE_BINARY_DIR}/bin
+)
+
+# add_subdirectory(plugins)
 
 if(ENABLE_TESTING)
     add_subdirectory(tests)

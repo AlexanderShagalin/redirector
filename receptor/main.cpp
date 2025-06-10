@@ -28,7 +28,8 @@
 #include "ioc.h"
 #include "serverprocesscommand.h"
 #include "httpredirector.h"
-
+#include "registerusercommand.h"
+#include "checkusercommand.h"
 
 
 using namespace std;
@@ -38,6 +39,7 @@ namespace net = boost::asio;
 using tcp = boost::asio::ip::tcp;
 
 static volatile sig_atomic_t flag = 0;
+static std::pair<std::string, std::string> authdata;
 
 void signal_handler(int)
 {
@@ -85,6 +87,47 @@ void createEnvironment()
             []()
             {
                 return std::dynamic_pointer_cast<IRedirector>(std::make_shared<HttpRedirector>());
+            } ))
+        )->execute();
+
+    IoC::Resolve<ICommandPtr>(
+        "IoC.Register",
+        "RegisterUserCommand",
+        make_container(std::function<ICommandPtr(std::string)>(
+            [](std::string username)
+            {
+                return std::dynamic_pointer_cast<ICommand>(std::make_shared<RegisterUserCommand>(username));
+            } ))
+        )->execute();
+
+    IoC::Resolve<ICommandPtr>(
+        "IoC.Register",
+        "CheckUserCommand",
+        make_container(std::function<ICommandPtr(std::string, std::string)>(
+            [](std::string token, std::string username)
+            {
+                return std::dynamic_pointer_cast<ICommand>(std::make_shared<CheckUserCommand>(token, username));
+            } ))
+        )->execute();
+
+    IoC::Resolve<ICommandPtr>(
+        "IoC.Register",
+        "Server.Auth.Set",
+        make_container(std::function<void(std::string, std::string)>(
+            [](std::string t, std::string n)
+            {
+                std::cout << "Auth params: " << n << " " << t << std::endl;
+                authdata = std::make_pair(t, n);
+            } ))
+        )->execute();
+
+    IoC::Resolve<ICommandPtr>(
+        "IoC.Register",
+        "Server.Auth.Get",
+        make_container(std::function<std::pair<std::string,std::string>(void)>(
+            []()
+            {
+                return authdata;
             } ))
         )->execute();
 }

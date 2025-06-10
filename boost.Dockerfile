@@ -17,6 +17,7 @@ RUN apt-get update && \
         pkg-config \
         ca-certificates \
         libssl-dev \
+	nlohmann-json3-dev \
         wget \
         git \
         curl \
@@ -64,7 +65,16 @@ ENV LD_LIBRARY_PATH=/usr/local/lib/
 #RUN tar -xzf apps.tar.gz
 
 WORKDIR /
+RUN git clone https://github.com/Thalhammer/jwt-cpp.git
+RUN cd jwt-cpp
+RUN cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+RUN cmake --build build --target install
+
+
+WORKDIR /
 RUN git clone https://github.com/AlexanderShagalin/redirector.git /apps
+
+
 
 WORKDIR /apps/build-receptor
 RUN cmake ../receptor
