@@ -65,8 +65,8 @@ ENV LD_LIBRARY_PATH=/usr/local/lib/
 #RUN tar -xzf apps.tar.gz
 
 WORKDIR /
-RUN git clone https://github.com/Thalhammer/jwt-cpp.git
-RUN cd jwt-cpp
+RUN git clone https://github.com/Thalhammer/jwt-cpp.git /jwt-cpp
+WORKDIR /jwt-cpp
 RUN cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN cmake --build build --target install
 
@@ -84,8 +84,12 @@ WORKDIR /apps/build-redirector
 RUN cmake ../redirector
 RUN make
 
+WORKDIR /apps/build-auth
+RUN cmake ../authenticator
+RUN make
+
 WORKDIR /apps/build-redirector/bin
 #CMD ["bash"]
-CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor"]
+CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor& /apps/build-auth/authenticator"]
 
 
