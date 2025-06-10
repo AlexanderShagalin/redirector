@@ -90,7 +90,7 @@ RUN make
 
 WORKDIR /apps/build-redirector/bin
 #CMD ["bash"]
-CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor& /apps/build-auth/bin/authenticator"]
-#CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor"]
+#CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor& /apps/build-auth/bin/authenticator"]
+CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor"]
 
 

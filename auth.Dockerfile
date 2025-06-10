@@ -76,21 +76,20 @@ RUN git clone https://github.com/AlexanderShagalin/redirector.git /apps
 
 
 
-WORKDIR /apps/build-receptor
-RUN cmake ../receptor
-RUN make
+#WORKDIR /apps/build-receptor
+#RUN cmake ../receptor
+#RUN make
 
-WORKDIR /apps/build-redirector
-RUN cmake ../redirector
-RUN make
+#WORKDIR /apps/build-redirector
+#RUN cmake ../redirector
+#RUN make
 
 WORKDIR /apps/build-auth
 RUN cmake ../authenticator
 RUN make
 
-WORKDIR /apps/build-redirector/bin
+WORKDIR /apps/build-auth/bin
 #CMD ["bash"]
-CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor& /apps/build-auth/bin/authenticator"]
-#CMD ["sh", "-c", "/apps/build-redirector/bin/redirector& /apps/build-receptor/bin/receptor"]
+CMD ["sh", "-c", "/apps/build-auth/bin/authenticator"]
 
 

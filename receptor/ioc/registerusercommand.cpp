@@ -74,5 +74,5 @@ RegisterUserCommand::RegisterUserCommand(std::string username) :
 
 void RegisterUserCommand::execute()
 {
-    do_request("127.0.0.1", "28082", m_username);
+    do_request("auth", "28082", m_username);
 }

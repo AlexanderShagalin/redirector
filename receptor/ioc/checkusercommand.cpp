@@ -81,5 +81,5 @@ CheckUserCommand::CheckUserCommand(std::string token, std::string username) :
 
 void CheckUserCommand::execute()
 {
-    do_request("127.0.0.1", "28082", m_token, m_username);
+    do_request("auth", "28082", m_token, m_username);
 }
